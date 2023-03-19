@@ -100,9 +100,10 @@ class Play:
 
 class Ai:
     def __init__(self):
-        self.learning_data=[]
+        '''
         with open('data.pickle','rb') as file:
             self.winning_data=pickle.load(file)
+            '''
         self.weight=[[0 for i in range(19)] for j in range(19)]
 
     
