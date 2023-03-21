@@ -2,6 +2,7 @@ import os,msvcrt
 import pickle
 import atexit
 import random
+import copy
 
 #MCTS or future_look
 
@@ -100,10 +101,8 @@ class Play:
 
 class Ai:
     def __init__(self):
-        '''
         with open('data.pickle','rb') as file:
             self.winning_data=pickle.load(file)
-            '''
         self.weight=[[0 for i in range(19)] for j in range(19)]
 
     
@@ -122,26 +121,36 @@ class Ai:
 
     def treeing(self,List,score):
         data=self.winning_data
-        run=True
-        for num in range(len(List)):
-            for leaf in data[2:]:
-                if List[num]==leaf[0]:
-                    run=False
-                    data=leaf
-                    leaf[1][0]+=1
-                    leaf[1][1]+=score*(-1)**num
-            if run:
-                data.append([List[num],[1,score*(-1)**num]])
-                data=data[-1]
-            run=True
-                    
+        List=copy.deepcopy(List)
+        for num in range(1,len(List)):
+            List[num]=[List[num][0]-List[0][0],List[num][1]-List[0][0]]
+        List[0]=[0,0]
+        for flip in range(2):
+            for turn in [[1,-1],[-1,1],[1,-1],[1,1]]:
+                for num in range(1,len(List)):
+                    run=True
+                    for leaf in data['next']:
+                        if List[num]==leaf['pos']:
+                            run=False
+                            data=leaf
+                            leaf['win'][0]+=1
+                            leaf['win'][score*(-1)**num]+=1
+                    if run:
+                        data['next'].append({'win':[1,0,0],'pos':List[num],'next':[]})
+                        data=data['next'][-1]
+                        data['win'][score*(-1)**num]+=1
+                for num in range(1,len(List)):
+                    List[num]=[List[num][0]*turn[0],List[num][1]*turn[1]]
+            if not flip:
+                for pos in List:
+                    pos.reverse()
 
     def save(self):
         with open('data.pickle','wb') as f:
             pickle.dump(self.winning_data,f)
 
     def clear(self):
-        self.winning_data=[[],[]]
+        self.winning_data={'pos':[0,0],'next':[]}
         with open('data.pickle','wb') as f:
             pickle.dump(self.winning_data,f)
 
@@ -159,6 +168,9 @@ ai=Ai()
 
 #atexit.register(ai.save)
 
-play.play()
+ai.treeing(play.play_data,play.play())
 list_print(play.map_shape)
 input()
+print(ai.winning_data)
+input()
+ai.save()
