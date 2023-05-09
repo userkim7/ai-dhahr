@@ -13,8 +13,8 @@ import copy
 #####
 class Play:
     def __init__(self):
-        self.map_data=[[0 for i in range(27)] for j in range(4)]+[[0,0,0,0]+[9 for i in range(19)]+[0,0,0,0] for j in range(19)]+[[0 for i in range(27)] for j in range(4)]
-        self.map_shape=[['┏ ']+['┳ ' for i in range(17)]+['┓']]+[['┣ ']+['╋ ' for i in range(17)]+['┫'] for j in range(17)]+[['┗ ']+['┻ ' for i in range(17)]+['┛']]
+        self.map_data=[[0 for i in range(17)] for j in range(4)]+[[0,0,0,0]+[9 for i in range(9)]+[0,0,0,0] for j in range(9)]+[[0 for i in range(17)] for j in range(4)]
+        self.map_shape=[['┏ ']+['┳ ' for i in range(7)]+['┓']]+[['┣ ']+['╋ ' for i in range(7)]+['┫'] for j in range(7)]+[['┗ ']+['┻ ' for i in range(7)]+['┛']]
         self.player_color=1
         self.play_data=[]
         self.pos_data=[]
@@ -52,8 +52,7 @@ class Play:
         self.map_data[pos[1]+4][pos[0]+4]=self.player_color
         self.map_shape[pos[1]][pos[0]]=' ■□'[self.player_color]
         self.pos_data.append(pos)
-        ai.heavy(pos,self.player_color)
-        ai.weight[pos[1]][pos[0]]=-99
+        #ai.weight[pos[1]][pos[0]]=-99
         self.analysis()
         return pos
 
@@ -62,22 +61,21 @@ class Play:
         self.map_data[pos[1]+4][pos[0]+4]=self.player_color*-1
         self.map_shape[pos[1]][pos[0]]=' ■□'[self.player_color*-1]
         self.pos_data.append(pos)
-        ai.heavy(pos,self.player_color*-1)
-        ai.weight[pos[1]][pos[0]]=-99
+        #ai.weight[pos[1]][pos[0]]=-99
         self.analysis()
         return pos
 
     def play(self):
         run=True
         ai.run=True
-        ai.weight=[[0 for i in range(19)]for j in range(19)]
+        ai.weight=[[0 for i in range(9)]for j in range(9)]
         self.choose_color()
         if self.player_color==1:
             if should_print:
                 list_print(self.map_shape)#
             self.judge(self.choose_pos(),1)
         while run:
-            if len(self.play_data)==361:
+            if len(self.play_data)==81:
                 return 0
             else:
                 if should_print:
@@ -91,14 +89,14 @@ class Play:
 
 class Ai:
     def __init__(self):
-        '''
+        
         with open('data.pickle','rb') as f:
             self.winning_data=pickle.load(f)
-            '''
-        self.winning_data=[]
+            
+        #self.winning_data=[[{'pos':[0,0],'next':[]}]]+[[] for i in range(99)]
         self.run=True
         self.training_data={}
-        self.weight=[[0 for i in range(19)]for j in range(19)]
+        self.weight=[[0 for i in range(9)]for j in range(9)]
 
     def heavy(self,pos,color):
         for List in ([1,-1],[1,0],[1,1],[0,1]):
@@ -139,7 +137,7 @@ class Ai:
         for row in self.weight:
             if max(row)>num:
                 num=max(row)
-        for y in range(19):
+        for y in range(9):
             for x,value in enumerate(self.weight[y]):
                 if value==num:
                     data.append([x,y])
@@ -147,8 +145,8 @@ class Ai:
 
     def position(self,color):
         if not play.play_data or not self.run or E>random.random():
-            #return ai.random_pos()
-            return self.algorithm()
+            return ai.random_pos()
+            #return self.algorithm()
         for leaf in self.winning_data[len(play.pos_data)]:
             self.run=False
             if play.play_data[-1]==leaf['pos']:
@@ -168,19 +166,16 @@ class Ai:
                     return pos[num]
             except:
                 pass
-        #return self.random_pos()
-        return self.algorithm()
+        return self.random_pos()
+        #return self.algorithm()
 
     def random_pos(self):
-        if not play.pos_data:
-            return [random.randint(0,18),random.randint(0,18)]
-        pos=[random.randint(0,18),random.randint(0,18)]
+        pos=[random.randint(0,8),random.randint(0,8)]
         while play.map_data[pos[1]+4][pos[0]+4]!=9:
-            pos=[random.randint(0,18),random.randint(0,18)]
+            pos=[random.randint(0,8),random.randint(0,8)]
         return pos
 
     def treeing(self,List,score):
-        '''
         data=self.winning_data
         List=copy.deepcopy(List)
         for flip in range(2):
@@ -226,8 +221,6 @@ class Ai:
             if not flip:
                 for pos in List:
                     pos.reverse()
-                    '''
-        #
 
     def save(self):
         with open('data.pickle','wb') as f:
@@ -270,11 +263,11 @@ for num in range(1,10001):
         '''
     ai.treeing(play.play_data,play.play())
     
-    if should_print or num%10==1:
+    if should_print or num%250==1:
         os.system('cls')#
         list_print(play.map_shape)
         #input()
-        #ai.save()
+        ai.save()
         #os.system('cls')
         
     E*=0.9999
@@ -284,9 +277,8 @@ for num in range(1,10001):
         ai.save()
         #print(f'\r{num}',end='')
         '''
-    print(f'{num} {E}')
+    print(f'{num}')
         
     
-
 input()
 #ai.save()

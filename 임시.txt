@@ -1,0 +1,6 @@
+os.mkdir(’dir_01’)#생성
+os.mkdir(‘/tmp/dir_01’)#하위 생성
+
+os.makedirs(‘dir_01/dir_02/dir_03’) #하위 자동 생성
+
+[0,0] [0,1] [0,2].pickle

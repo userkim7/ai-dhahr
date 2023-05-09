@@ -197,6 +197,9 @@ ai=Ai()
 
 #atexit.register(ai.save)
 
+print(ai.winning_data[0])
+input()
+
 ai.treeing(play.play_data,play.play())
 list_print(play.map_shape)
 print(ai.winning_data)
