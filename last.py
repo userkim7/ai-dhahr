@@ -2,6 +2,7 @@ import os
 import pickle
 import random
 import copy
+import time
 
 size=9
 
@@ -119,11 +120,11 @@ class Play:
 class Ai:
     def __init__(self):
         self.weight=[[0 for i in range(size)] for j in range(size)]
-        '''try:
+        try:
             with open('list.pickle','rb') as f:
                 self.name_list=pickle.load(f)
-        except:'''
-        self.name_list=[]
+        except:
+            self.name_list=[]
 
     def scoring(self):
         num=0
@@ -147,66 +148,85 @@ class Ai:
         return pos
     
     def alphabeta(self,color):
-        d=5
         depth=len(play.play_data)
         data=[]
-        tree=[[[[0 for i in range(size**2)] for j in range(size**2)] for k in range(size**2)] for l in range(size**2)]
-        for num in range(len(self.name_list)):
-            if self.name_list[num][:depth]==play.play_data:
-                data.append([num,self.name_list[num][depth:depth+d]])
+        for List in self.name_list:
+            if List[0][:depth]==play.play_data:
+                data.append([List[0][depth:],List[1]])
         if not data:
             return self.random_pos()
-        for List in data:
-            address=[]
-            for num in range(len(List[1])-1):
-                address.append(self.index(List[1][num]))
-            for pos in address:
-                target=tree[pos]
-            with open('data/List[0].pickle','rb') as f:
-                target=pickle.load(f)[depth]
-                
-        for num in range(size**2):
-            for num2 in range(size**2):
-                for num3 in range(size**2):
-                    if tree[num][num2][num3]==[0 for i in range(size**2)]:
-                        tree[num][num2][num3]=0
-                        continue
-                    memory=99
-                    for num4 in tree[num][num2][num3]:
-                        if num4<memory and num4!=0:
-                            memory=num4
-                    tree[num][num2][num3]=memory
-                if tree[num][num2]==[0 for i in range(size**2)]:
-                    tree[num][num2]=0
-                    continue
-                memory=-99
-                for num4 in tree[num][num2]:
-                    if num4>memory and num4!=0:
-                        memory=num4
-                tree[num][num2]=memory
-            if tree[num]==[0 for i in range(size**2)]:
-                tree[num]=0
+        data2=self.sort(data)
+        for Dict in data2:
+            if type(Dict['next'])==int:
                 continue
-            memory=99
-            for num4 in tree[num]:
-                if num4<memory and num4!=0:
-                    memory=num4
-            tree[num]=memory
-        memory=0
-        for num in range(len(tree)):
-            if num>memory:
-                memory=num
-        memory2=[]
-        for num,value in enumerate(tree):
-            if value==memory:
-                memory2.append(num)
-        return self.index2(random.choice(memory2))
-            
-    def index(self,pos):
-        return (pos[1]+round(size/2))*size+(pos[0]+round(size/2))
+            Dict['next']=self.sort(Dict['next'])
+            for Dict2 in Dict['next']:
+                if type(Dict2['next'])==int:
+                    continue
+                Dict2['next']=self.sort(Dict2['next'])
+                for Dict3 in Dict2['next']:
+                    if type(Dict3['next'])==int:
+                        continue
+                    Dict3['next']=self.sort(Dict3['next'])
+                    memory=0
+                    for Dict4 in Dict3['next']:
+                        for List in Dict4['next']:
+                            memory+=List[1]
+                    Dict3['next']=memory
+                    
+        for num3 in range(len(data2)):
+            if type(data2[num3]['next'])==int:
+                continue
+            for num2 in range(len(data2[num3]['next'])):
+                if type(data2[num3]['next'][num2]['next'])==int:
+                    continue
+                for num in range(len(data2[num3]['next'][num2]['next'])):
+                    if type(data2[num3]['next'][num2]['next'][num]['next'])==int:
+                        continue
+                    if type(data2[num3]['next'][num2]['next'][num]['next'])==int:
+                        data2[num3]['next'][num2]['next'][num]=data2[num3]['next'][num]['next']
+                        continue
+                    memory=[]
+                    for List in data2[num3]['next'][num2]['next'][num]['next']:
+                        memory.append(List['next'])
+                    data2[num3]['next'][num2]['next'][num]=min(memory)
+                data2[num3]['next'][num2]=max([Dict['next'] for Dict in data2[num3]['next'][num2]['next']])
+            memory=[]
+            for Dict in data2[num3]['next']:
+                if type(Dict)==int:
+                    memory.append(Dict)
+                    continue
+                memory.append(Dict['next'])
+            data2[num3]['next']=min(memory)
 
-    def index2(self,num):
-        return [num%size-round(size/2),num//size-round(size/2)]
+        memory=-9999
+        memory2=[]
+        for Dict in data2:
+            if Dict['next']>memory:
+                memory=Dict['next']
+        for Dict in data2:
+            if Dict['next']==memory and play.map_data[Dict['pos'][1]+4][Dict['pos'][0]+4]==9:
+                memory2.append(Dict['pos'])
+
+        if memory2:
+            return random.choice(memory2)
+        else:
+            return self.random_pos()
+        
+    def sort(self,data):
+        if len(data[0][0])==1:
+            return {'pos':data[0][0],'next':data[0][1]}
+        data2=[]
+        for List in data:
+            run=True
+            for Dict in data2:
+                if Dict['pos']==List[0][0]:
+                    run=False
+                    Dict['next'].append([List[0][1:],List[1]])
+            if run:
+                data2.append({'pos':List[0][0],'next':[[List[0][1:],List[1]]]})
+        return data2
+        
             
     def treeing(self,score):
         List=copy.deepcopy(play.play_data)
@@ -215,22 +235,28 @@ class Ai:
             for turn in [[1,-1],[-1,1],[1,-1],[1,1]]:
                 for num in range(len(self.name_list)):
                     if self.name_list[num][0]==List:
-                    run=False
+                        run=False
                     self.name_list[num][1]+=score
                     break
                 if run:
                     self.name_list.append([List,score])
-                with open('list.pickle','wb') as f:
-                    pickel.dump(self.name_list,f)
-                for num in range(1,len(List)):
+                List2=[[] for i in List]
+                for num in range(len(List)):
                     List2[num]=[List[num][0]*turn[0],List[num][1]*turn[1]]
                 List=copy.deepcopy(List2)
             if not flip:
                 for pos in List:
                     pos.reverse()
+
+    def save(self):
+        with open('list.pickle','wb') as f:
+            pickle.dump(self.name_list,f)
                 
 def list_print(List):
-    #os.system('cls')
+    global num
+    #time.sleep(0)
+    os.system('cls')
+    print(f'{num}/10000')
     data=''
     for row in List:
         data+=''.join(row)+'\n'
@@ -240,18 +266,20 @@ def list_print(List):
 play=Play()
 ai=Ai()
 
-random_rate=1
-learn_rate=1
+random_rate=1*0.9999**len(ai.name_list)
+learn_rate=1*0.9999**len(ai.name_list)
+
+should_print=True
 
 for num in range(1,10001):
     play=Play()
-    should_print=False
 
     ai.treeing(play.play())
 
-    if should_print or num%100==1:
+    if should_print or num%1000==1:
         os.system('cls')
         list_print(play.map_shape)
+        ai.save()
     random_rate*=0.9999
     learn_rate*=0.9999
     print(f'{num}')
