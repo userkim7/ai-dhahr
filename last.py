@@ -210,33 +210,24 @@ class Ai:
             
     def treeing(self,score):
         List=copy.deepcopy(play.play_data)
-        List2=[[] for i in List]
+        run=True
         for flip in range(2):
             for turn in [[1,-1],[-1,1],[1,-1],[1,1]]:
-                self.name_list.append(List)
+                for num in range(len(self.name_list)):
+                    if self.name_list[num][0]==List:
+                    run=False
+                    self.name_list[num][1]+=score
+                    break
+                if run:
+                    self.name_list.append([List,score])
                 with open('list.pickle','wb') as f:
-                    pickle.dump(self.name_list,f)
-                score_list=[i*score for i in play.score_data]
-                with open(f'data/{len(self.name_list)}.pickle','wb') as f:
-                    pickle.dump(score_list,f)
+                    pickel.dump(self.name_list,f)
                 for num in range(1,len(List)):
                     List2[num]=[List[num][0]*turn[0],List[num][1]*turn[1]]
                 List=copy.deepcopy(List2)
             if not flip:
                 for pos in List:
                     pos.reverse()
-    def treeing(self,score):
-        run=True
-        List=copy.deepcopy(play.play_data)
-        for num in range(len(self.name_list)):
-            if self.name_list[num][0]==List:
-                run=False
-                self.name_list[num][1]+=score
-                break
-        if run:
-            self.name_list.append([List,score])
-        with open('list.pickle','wb') as f:
-            pickel.dump(self.name_list,f)
                 
 def list_print(List):
     #os.system('cls')
