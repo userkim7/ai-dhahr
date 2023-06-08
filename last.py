@@ -145,7 +145,7 @@ class Ai:
         while play.map_data[pos[1]+4][pos[0]+4]!=9:
             pos=[random.randint(0,size-1),random.randint(0,size-1)]
         return pos
-
+    
     def alphabeta(self,color):
         d=5
         depth=len(play.play_data)
