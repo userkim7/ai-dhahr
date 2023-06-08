@@ -225,6 +225,18 @@ class Ai:
             if not flip:
                 for pos in List:
                     pos.reverse()
+    def treeing(self,score):
+        run=True
+        List=copy.deepcopy(play.play_data)
+        for num in range(len(self.name_list)):
+            if self.name_list[num][0]==List:
+                run=False
+                self.name_list[num][1]+=score
+                break
+        if run:
+            self.name_list.append([List,score])
+        with open('list.pickle','wb') as f:
+            pickel.dump(self.name_list,f)
                 
 def list_print(List):
     #os.system('cls')
